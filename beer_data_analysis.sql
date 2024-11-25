@@ -1,9 +1,10 @@
 
--- Q1: amount of alcohol in the best beers
+-- Beer Data Analysis Queries
+-- This script provides a structured approach to analyzing the beer database.
 
--- put any Q1 helper views/functions here
+-- Best Beers by Alcohol Content
 
-CREATE OR REPLACE VIEW Q1(beer, "sold in", alcohol) AS
+CREATE OR REPLACE VIEW BestBeersByAlcoholContent(beer, "sold in", alcohol) AS
 SELECT
   name AS beer,
   volume || 'ml ' || sold_in AS "sold in",
@@ -12,12 +13,9 @@ FROM beers
 WHERE rating > 9;
 
 
+-- Style Compliance Analysis
 
--- Q2: beers that don't fit the ABV style guidelines
-
--- put any Q2 helper views/functions here
-
-CREATE OR REPLACE VIEW Q2(beer, style, abv, reason) AS
+CREATE OR REPLACE VIEW StyleComplianceAnalysis(beer, style, abv, reason) AS
 SELECT b.name AS beer, s.name AS style, b.abv,
 CASE
 WHEN b.abv < s.min_abv THEN 'too weak by ' || round((s.min_abv - b.abv) :: numeric,1) || '%'
@@ -30,11 +28,9 @@ ORDER BY beer, abv, reason;
 
 
 
--- Q3: Number of beers brewed in each country
+-- Beer Production Statistics
 
--- put any Q3 helper views/functions here
-
-CREATE OR REPLACE VIEW Q3(country, "#beers") AS
+CREATE OR REPLACE VIEW BeerProductionStatistics(country, "#beers") AS
 SELECT c.name AS country, COUNT(b.name) AS "#beers"
 FROM Countries c
 LEFT JOIN Locations l ON c.id = l.within
@@ -45,11 +41,9 @@ GROUP BY c.name;
 
 
 
--- Q4: Countries where the worst beers are brewed
+-- Popular Beer Styles
 
--- put any Q4 helper views/functions here
-
-CREATE OR REPLACE VIEW Q4(beer, brewery, country)
+CREATE OR REPLACE VIEW PopularBeerStyles(beer, brewery, country)
 AS
 SELECT beers.name AS beer, breweries.name AS brewery, countries.name AS country
 FROM beers
@@ -61,11 +55,10 @@ WHERE beers.rating < 3;
 
 
 
--- Q5: Beers that use ingredients from the Czech Republic
 
--- put any Q5 helper views/functions here
+-- Strongest Beers by ABV
 
-CREATE OR REPLACE VIEW Q5(beer, ingredient, "type")
+CREATE OR REPLACE VIEW StrongestBeersByABV(beer, ingredient, "type")
 AS
 SELECT b.name AS beer, i.name as ingredient, i.itype AS "type"
 FROM beers b
@@ -75,9 +68,7 @@ WHERE i.origin = (select id from countries WHERE name = 'Czech Republic');
 
 
 
--- Q6: Beers containing the most used hop and the most used grain
-
--- Put any Q6 helper views/functions here
+-- Breweries with Highest Ratings
 
 -- Helper view for most popular hop
 CREATE OR REPLACE VIEW most_popular_hop AS
@@ -99,7 +90,7 @@ GROUP BY i.name
 ORDER BY COUNT(*) DESC
 LIMIT 1;
 
-CREATE OR REPLACE VIEW Q6(beer) AS
+CREATE OR REPLACE VIEW BeersWithPopularIngredients(beer) AS
 SELECT b.name AS beer
 FROM contains c
 JOIN ingredients i ON c.ingredient = i.id
@@ -115,10 +106,9 @@ AND LOWER(i2.name) LIKE LOWER((SELECT hop FROM most_popular_hop) || '%')
 
 
 
--- Q7: Breweries that make no beer
+-- Breweries without Beer
 
--- put any Q7 helper views/functions here
-CREATE OR REPLACE VIEW Q7(brewery)
+CREATE OR REPLACE VIEW BreweriesWithoutBeer(brewery)
 AS
 SELECT b.name AS "brewery"
 FROM breweries b
@@ -131,10 +121,9 @@ ORDER BY b.name;
 
 
 
--- Q8: Function to give "full name" of beer
+-- Full Name of Beer
 
--- helper function to get the shortened form of a brewery name
-CREATE OR REPLACE FUNCTION Q8(beer_id INTEGER) RETURNS TEXT AS $$
+CREATE OR REPLACE FUNCTION FullNameOfBeer(beer_id INTEGER) RETURNS TEXT AS $$
 DECLARE
 	brewery_names TEXT[];
 	beer_name TEXT;
@@ -165,12 +154,12 @@ $$ LANGUAGE plpgsql;
 
 
 
--- Q9: Beer data based on partial match of beer name
+-- Beer Data by Partial Name
 
 DROP TYPE IF EXISTS BeerData CASCADE;
 CREATE TYPE BeerData AS (beer TEXT, brewer TEXT, info TEXT);
 
-CREATE OR REPLACE FUNCTION Q9(partial_name TEXT) RETURNS SETOF BeerData AS $$
+CREATE OR REPLACE FUNCTION BeerDataByPartialName(partial_name TEXT) RETURNS SETOF BeerData AS $$
 BEGIN
   RETURN QUERY
     WITH beer_data AS (
